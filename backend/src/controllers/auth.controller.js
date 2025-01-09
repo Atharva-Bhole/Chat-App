@@ -5,8 +5,12 @@ import { generateToken } from "../lib/utils.js";
 import cloudinary from "../lib/cloudinary.js";
 
 export const signup = async (req, res)=>{
+    const {fullName, email, password} = req.body;
     try{
-        const {name, email, password} = req.body;
+        if(!fullName|| !email, !password)
+        {
+            res.status(StatusCodes.BAD_GATEWAY).json({message : "All fields are required"});
+        }
         if(password.length < 6)
         {
             return res.status(StatusCodes.BAD_REQUEST).json({
@@ -17,8 +21,7 @@ export const signup = async (req, res)=>{
         const user =  await User.findOne({email});
         if(user)
         {
-            res.status(StatusCodes.BAD_REQUEST).json({
-                success : false,
+            res.status(400).json({
                 message : "User already exists in Database"
             });
         }
@@ -26,7 +29,7 @@ export const signup = async (req, res)=>{
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(password, salt);
             const newUser = await User.create({
-                name,
+                name:fullName,
                 email,
                 password : hashedPassword
             });
@@ -123,3 +126,12 @@ export const updateProfile = async (req, res)=>{
         
     }
 }
+
+export const checkAuth = (req, res) => {
+    try {
+      res.status(200).json(req.user);
+    } catch (error) {
+      console.log("Error in checkAuth controller", error.message);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  };

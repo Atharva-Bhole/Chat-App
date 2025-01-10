@@ -74,9 +74,10 @@ export const login = async(req, res)=>{
 
         generateToken(user._id, res);
         res.status(StatusCodes.OK).json({
-            success : true,
-            message : "Login Successful",
-            user
+            _id : user._id,
+            fullName : user.name,
+            email : user.email,
+            profilePic : user.profilePic
         });
         
         

@@ -19,19 +19,26 @@ const ChatContainer = () => {
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
 
-  useEffect(() => {
-    getMessages(selectedUser._id);
+  const renderedMessages = Array.isArray(messages) ? messages : [];
 
+  useEffect(() => {
+    if (!selectedUser) return;
+
+    getMessages(selectedUser._id);
     subscribeToMessages();
 
     return () => unsubscribeFromMessages();
-  }, [selectedUser._id, getMessages, subscribeToMessages, unsubscribeFromMessages]);
+  }, [selectedUser, getMessages, subscribeToMessages, unsubscribeFromMessages]);
 
   useEffect(() => {
-    if (messageEndRef.current && messages) {
+    if (messageEndRef.current) {
       messageEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
+
+  if (!selectedUser) {
+    return <div>Please select a user to start chatting.</div>;
+  }
 
   if (isMessagesLoading) {
     return (
@@ -48,13 +55,12 @@ const ChatContainer = () => {
       <ChatHeader />
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((message) => (
+        {renderedMessages.map((message, index) => (
           <div
-            key={message._id}
+            key={message._id || index}
             className={`chat ${message.senderId === authUser._id ? "chat-end" : "chat-start"}`}
-            ref={messageEndRef}
           >
-            <div className=" chat-image avatar">
+            <div className="chat-image avatar">
               <div className="size-10 rounded-full border">
                 <img
                   src={
@@ -83,10 +89,12 @@ const ChatContainer = () => {
             </div>
           </div>
         ))}
+        <div ref={messageEndRef}></div>
       </div>
 
       <MessageInput />
     </div>
   );
 };
+
 export default ChatContainer;
